@@ -1,0 +1,213 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+
+  <style type='text/css'>
+    #holder { border: 2px dashed #ccc; width: 300px; height: 100px; margin: 2px; display: table-cell; vertical-align: middle; text-align: center; color: #ccc}
+#holder.hover { border-color: #333; color: #333 }
+
+
+  </style>
+
+
+
+<script>
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html
+
+function stat(txt) {
+    if (console) {
+        console.log(txt);
+    }
+    $('#status').text(txt);
+}
+
+var context, audioToPlay, destNode, filter;
+
+function playBuffer(buffer, into, when) {
+    // Yes, you really need to create a new node and wire it into the
+    // graph each time. It gets automatically removed and gc'ed.
+    var sourceNode = context.createBufferSource();
+    sourceNode.buffer = buffer;
+    sourceNode.connect(destNode);
+    sourceNode.gain.value = .25;
+    sourceNode.noteOn(0);
+    return sourceNode
+}
+
+function getBinaryAjax(url, success) {
+    var req = new XMLHttpRequest();
+    req.open('GET', url, true);
+    req.responseType = 'arraybuffer';
+    req.onload = function() {
+        success(req.response);
+    };
+    req.send();
+}
+
+function setAudioFromArrayBuffer(arrayBuffer) {
+    context.decodeAudioData(arrayBuffer, function(buffer) {
+        stat();
+        audioToPlay = buffer;
+        nextRound("Ready to play?");
+    });
+}
+
+function registerDropListener() {
+    if (typeof window.FileReader === 'undefined') {
+        stat("File API unavailable.");
+    }
+    var holder = document.getElementById('holder');
+    holder.ondragover = function() {
+        this.className = 'hover';
+        return false;
+    };
+    holder.ondragend = function() {
+        this.className = '';
+        return false;
+    };
+    holder.ondrop = function(event) {
+        this.className = '';
+        event.preventDefault();
+        var file = event.dataTransfer.files[0],
+            reader = new FileReader();
+        stat('Loading ' + file.name);
+        reader.onload = function(event) {
+            stat('Got file; decoding contents...');
+            setAudioFromArrayBuffer(event.target.result);
+        };
+        reader.readAsArrayBuffer(file);
+    };
+    stat("Waiting for a file.");
+}
+
+freqs = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+
+gameFreq = null;
+gameGain = null;
+
+function nextRound(msg) {
+    $("#cur").hide();
+    gameFreq = freqs[~~(Math.random() * freqs.length)];
+    stat(msg);
+    setGain(0);
+    setTimeout(function() {
+        setFreq(gameFreq);
+        setTimeout(function() {
+            setGain(gameGain);
+            stat("Guess the frequency!");
+        }, 500);
+    }, 500);
+}
+
+function updateCur() {
+    $("#cur").text(filter.gain.value + " @ " + filter.frequency.value + " Q=" + filter.Q.value);
+}
+
+function setFreq(freq) {
+    filter.frequency.value = freq;
+    updateCur();
+}
+
+function setGain(gain) {
+    filter.gain.value = gain;
+    updateCur();
+}
+
+$(function() {
+    stat("Creating context...");
+    context = new webkitAudioContext();
+    filter = context.createBiquadFilter();
+    filter.type = 5;
+    filter.frequency.value = 630;
+    filter.Q.value = Math.sqrt(2)/2;
+    filter.gain.value = 0;
+    $("#freq-val").text(filter.frequency.value);
+    $("#gain-val").text(filter.gain.value);
+    $("#Q-val").text(filter.Q.value);
+    gainNode = context.createGain();
+    gainNode.gain.value = Math.pow(10, -24/20);
+    gainNode.connect(context.destination)
+    filter.connect(gainNode);
+    destNode = filter;
+    currentSourceNode = null;
+
+    registerDropListener();
+
+    freqs.forEach(function(freq) {
+        $("<button>").text(freq).click(function() {
+            if (gameFreq) {
+                if (freq == filter.frequency.value) {
+                    nextRound("Correct!");
+                } else {
+                    stat("Nope... here's what you said...");
+                    setFreq(freq);
+                    setTimeout(function() {
+                        stat("Now try again.");
+                        setFreq(gameFreq);
+                    }, 2000);
+                }
+            } else {
+                setFreq(freq);
+            }
+        }).appendTo("#options");
+    });
+
+    [-24, -12, 0, 12, 24].forEach(function(gain) {
+        $("<button>").text(gain).click(function() {
+            setGain(gain);
+        }).appendTo("#boostcut");
+    });
+
+    [["normal", Math.sqrt(2)/2], ["narrow", 2], ["narrower", 4]].forEach(function(e) {
+        $("<button>").text(e[0]).click(function() {
+            filter.Q.value = e[1];
+        }).appendTo("#width");
+    });
+
+    $('#play').click(function() {
+        stat("Play");
+        currentSourceNode = playBuffer(audioToPlay, context.destination, 0);
+    });
+
+    $('#stop').click(function() {
+        stat("Stop");
+        currentSourceNode.noteOff(0);
+    });
+
+    $('#game').click(function() {
+        nextRound();
+    });
+
+    $('#manual').click(function() {
+        $("#cur").show();
+        gameFreq = null;
+    });
+
+    gameGain = 24;
+    setGain(gameGain);
+});
+</script>
+
+
+</head>
+<body>
+  <div id="status"></div>
+<div id="holder">(Drop files here)</div>
+<button id="play">Play</button>
+<button id="stop">Stop!</button>
+<button id="game">Game</button>
+<button id="manual">Manual</button>
+
+<div id="options"></div>
+<div id="boostcut"></div>
+<div id="width">Q: </div>
+<div id="cur"></div>
+
+</body>
+
+
+</html>
+
