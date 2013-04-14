@@ -182,7 +182,7 @@ $(function() {
 
     [-24, -12, 0, 12, 24].forEach(function(gain) {
         $("<button>").text(gain).click(function() {
-            setGain(gain);
+            setGain(gameGain = gain);
         }).appendTo("#boostcut");
     });
 
