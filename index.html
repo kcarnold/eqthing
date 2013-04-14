@@ -90,12 +90,27 @@ for (i=0; i<13; i++) {
   freqs.push(50*Math.pow(2, 2*i/3.));
 }
 
+scores = [];
+freqs.forEach(function() { scores.push(1.0); });
+
+gameFreqIdx = null;
 gameFreq = null;
 gameGain = null;
 
+function drawRandom(p) {
+    var total = 0, i;
+    for (i=0; i<p.length; i++) total += p[i];
+    var rnd = Math.random();
+    i = 0;
+    while(rnd > p[i] / total)
+        rnd -= p[i++] / total;
+    return i;
+}
+
 function nextRound(msg) {
     $("#cur").hide();
-    gameFreq = freqs[~~(Math.random() * freqs.length)];
+    console.log(scores);
+    gameFreq = freqs[gameFreqIdx = drawRandom(scores)];
     stat(msg);
     setTimeout(function() {
         setGain(0);
@@ -143,12 +158,15 @@ $(function() {
 
     registerDropListener();
 
-    freqs.forEach(function(freq) {
+    freqs.forEach(function(freq, i) {
         $("<button>").text(Math.round(freq*10)/10).click(function() {
             if (gameFreq) {
                 if (freq == gameFreq) {
+                    scores[i] /= 1.1;
                     nextRound("Correct!");
                 } else {
+                    scores[i] *= 1.5;
+                    scores[gameFreqIdx] *= 1.5;
                     stat("Nope... here's what you said...");
                     setFreq(freq);
                     setTimeout(function() {
