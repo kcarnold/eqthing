@@ -83,7 +83,12 @@ function registerDropListener() {
     stat("Waiting for a file.");
 }
 
-freqs = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+freqs = [];//[31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+freqs = [];
+var i;
+for (i=0; i<13; i++) {
+  freqs.push(50*Math.pow(2, 2*i/3.));
+}
 
 gameFreq = null;
 gameGain = null;
@@ -92,14 +97,16 @@ function nextRound(msg) {
     $("#cur").hide();
     gameFreq = freqs[~~(Math.random() * freqs.length)];
     stat(msg);
-    setGain(0);
     setTimeout(function() {
-        setFreq(gameFreq);
+        setGain(0);
         setTimeout(function() {
-            setGain(gameGain);
-            stat("Guess the frequency!");
+            setFreq(gameFreq);
+            setTimeout(function() {
+                setGain(gameGain);
+                stat("Guess the frequency!");
+            }, 500);
         }, 500);
-    }, 500);
+    }, 1000);
 }
 
 function updateCur() {
@@ -137,9 +144,9 @@ $(function() {
     registerDropListener();
 
     freqs.forEach(function(freq) {
-        $("<button>").text(freq).click(function() {
+        $("<button>").text(Math.round(freq*10)/10).click(function() {
             if (gameFreq) {
-                if (freq == filter.frequency.value) {
+                if (freq == gameFreq) {
                     nextRound("Correct!");
                 } else {
                     stat("Nope... here's what you said...");
