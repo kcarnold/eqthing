@@ -111,6 +111,7 @@ function nextRound(msg) {
     $("#cur").hide();
     console.log(scores);
     gameFreq = freqs[gameFreqIdx = drawRandom(scores)];
+    firstTime = true;
     stat(msg);
     setTimeout(function() {
         setGain(0);
@@ -162,11 +163,10 @@ $(function() {
         $("<button>").text(Math.round(freq*10)/10).click(function() {
             if (gameFreq) {
                 if (freq == gameFreq) {
-                    scores[i] /= 1.1;
+                    if (firstTime) scores[i] /= 1.1;
                     nextRound("Correct!");
                 } else {
-                    scores[i] *= 1.5;
-                    scores[gameFreqIdx] *= 1.5;
+                    firstTime = false;
                     stat("Nope... here's what you said...");
                     setFreq(freq);
                     setTimeout(function() {
