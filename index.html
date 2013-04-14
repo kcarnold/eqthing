@@ -84,11 +84,11 @@ function registerDropListener() {
 }
 
 freqs = [];//[31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
-freqs = [];
-var i;
-for (i=0; i<13; i++) {
-  freqs.push(50*Math.pow(2, 2*i/3.));
-}
+freqs = [50, 80, 125, 200, 315, 500, 800, 1250, 2000, 3150, 5000, 8000, 12500];
+// var i;
+// for (i=0; i<13; i++) {
+//   freqs.push(50*Math.pow(2, 2*i/3.));
+// }
 
 scores = [];
 freqs.forEach(function() { scores.push(1.0); });
