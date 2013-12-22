@@ -31,9 +31,11 @@ function playBuffer(buffer, into, when) {
     // graph each time. It gets automatically removed and gc'ed.
     var sourceNode = context.createBufferSource();
     sourceNode.buffer = buffer;
-    sourceNode.connect(destNode);
-    sourceNode.gain.value = .25;
-    sourceNode.noteOn(0);
+    var gain = context.createGain();
+    sourceNode.connect(gain);
+    gain.connect(destNode);
+    gain.gain.value = .25;
+    sourceNode.start(0);
     return sourceNode
 }
 
@@ -141,9 +143,9 @@ function setGain(gain) {
 
 $(function() {
     stat("Creating context...");
-    context = new webkitAudioContext();
+    context = (window.hasOwnProperty('webkitAudioContext') ? new webkitAudioContext() : new AudioContext());
     filter = context.createBiquadFilter();
-    filter.type = 5;
+    filter.type = "peaking";
     filter.frequency.value = 630;
     filter.Q.value = Math.sqrt(2)/2;
     filter.gain.value = 0;
@@ -199,7 +201,7 @@ $(function() {
 
     $('#stop').click(function() {
         stat("Stop");
-        currentSourceNode.noteOff(0);
+        currentSourceNode.stop(0);
     });
 
     $('#game').click(function() {
@@ -221,7 +223,7 @@ $(function() {
 <body>
     <h1>The EQ Thing.</h1>
     <ol>
-<li>Open it in Chrome.</li>
+<li>Open it in Chrome or Firefox.</li>
 <li>Drag a file to the boxed area.</li>
 <li>When it says ready to play, click Play. You may need to turn your volume up because it pulls the gain way down to avoid clipping.</li>
 <li>Guess the frequency. Repeat. Learn eq.</li>
