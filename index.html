@@ -78,9 +78,9 @@ function registerDropListener() {
         stat('Loading ' + file.name);
         reader.onload = function(event) {
             stat('Got file; decoding contents...');
-            setAudioFromArrayBuffer(event.target.result);
+            document.getElementById('audio-tag').src = event.target.result;
         };
-        reader.readAsArrayBuffer(file);
+        reader.readAsDataURL(file);
     };
     stat("Waiting for a file.");
 }
@@ -228,6 +228,8 @@ $(function() {
 <li>When it says ready to play, click Play. You may need to turn your volume up because it pulls the gain way down to avoid clipping.</li>
 <li>Guess the frequency. Repeat. Learn eq.</li>
 </ol>
+
+<audio id="audio-tag" controls></audio>
 
   <div id="status"></div>
 <div id="holder">(Drop files here)</div>
