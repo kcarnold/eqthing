@@ -79,6 +79,8 @@ function registerDropListener() {
         reader.onload = function(event) {
             stat('Got file; decoding contents...');
             document.getElementById('audio-tag').src = event.target.result;
+            context.createMediaElementSource(document.getElementById('audio-tag')).connect(destNode);
+
         };
         reader.readAsDataURL(file);
     };
