@@ -3,7 +3,7 @@
 <html>
 <head>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-  <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+  <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
 
   <style type='text/css'>
     #holder { border: 2px dashed #ccc; width: 300px; height: 100px; margin: 2px; display: table-cell; vertical-align: middle; text-align: center; color: #ccc}
@@ -78,9 +78,11 @@ function registerDropListener() {
         stat('Loading ' + file.name);
         reader.onload = function(event) {
             stat('Got file; decoding contents...');
-            setAudioFromArrayBuffer(event.target.result);
+            document.getElementById('audio-tag').src = event.target.result;
+            context.createMediaElementSource(document.getElementById('audio-tag')).connect(destNode);
+
         };
-        reader.readAsArrayBuffer(file);
+        reader.readAsDataURL(file);
     };
     stat("Waiting for a file.");
 }
@@ -217,7 +219,7 @@ $(function() {
     setGain(gameGain);
 });
 </script>
-
+<title>The EQ Thing</title>
 
 </head>
 <body>
@@ -228,6 +230,8 @@ $(function() {
 <li>When it says ready to play, click Play. You may need to turn your volume up because it pulls the gain way down to avoid clipping.</li>
 <li>Guess the frequency. Repeat. Learn eq.</li>
 </ol>
+
+<audio id="audio-tag" controls></audio>
 
   <div id="status"></div>
 <div id="holder">(Drop files here)</div>
