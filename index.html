@@ -78,9 +78,11 @@ function registerDropListener() {
         stat('Loading ' + file.name);
         reader.onload = function(event) {
             stat('Got file; decoding contents...');
-            document.getElementById('audio-tag').src = event.target.result;
-            context.createMediaElementSource(document.getElementById('audio-tag')).connect(destNode);
-
+            let audioElt = document.getElementById('audio-tag');
+            audioElt.src = event.target.result;
+            context.createMediaElementSource(audioElt).connect(destNode);
+            audioElt.play();
+            nextRound();
         };
         reader.readAsDataURL(file);
     };
@@ -112,6 +114,7 @@ function drawRandom(p) {
 }
 
 function nextRound(msg) {
+    if (!msg) msg = "Starting game.";
     $("#cur").hide();
     //console.log(scores);
     gameFreq = freqs[gameFreqIdx = drawRandom(scores)];
